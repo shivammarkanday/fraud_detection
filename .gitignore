@@ -18,7 +18,7 @@ Thumbs.db
 .ipynb_checkpoints/
 
 # Model and data backups
-*.joblib
+
 *.sav
 *.h5
 *.pkl
