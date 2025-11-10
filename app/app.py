@@ -165,25 +165,45 @@ with right:
     st.subheader("2) Predict single transaction")
     st.info("Fill values or press ‘Load random single sample’ to auto-fill fields.")
 
-    with st.form("single_form"):
-        sample_single = st.form_submit_button("Load random single sample from sample_creditcard.csv")
-        inputs = {}
+   # ---- single-sample loader (button outside the form) ----
+if st.button("Load random single sample from sample_creditcard.csv"):
+    try:
+        df_all = pd.read_csv("data/sample_creditcard.csv")
+        row = df_all.sample(1, random_state=42).iloc[0]
         for i in range(1,29):
-            key = f"V{i}"
-            inputs[key] = st.number_input(key, value=0.0, format="%.6f", step=0.1, key=key)
-        amount = st.number_input("Amount", value=0.0, format="%.2f", key="Amount")
-        submit_single = st.form_submit_button("Predict")
+            st.session_state[f"V{i}"] = float(row[f"V{i}"])
+        st.session_state["Amount"] = float(row["Amount"])
+        st.success("Loaded sample into the form. Now press Predict.")
+    except Exception as e:
+        st.error(f"Could not load sample dataset: {e}")
 
-    if sample_single:
-        try:
-            df_all = pd.read_csv("data/sample_creditcard.csv")
-            row = df_all.sample(1, random_state=42).iloc[0]
-            for i in range(1,29):
-                st.session_state[f"V{i}"] = float(row[f"V{i}"])
-            st.session_state["Amount"] = float(row["Amount"])
-            st.success("Loaded random sample into the form. Re-run Predict.")
-        except Exception as e:
-            st.error(f"Could not load sample dataset: {e}")
+# ---- form for single transaction prediction ----
+with st.form("single_form"):
+    # create placeholders for inputs; use session_state values if present
+    for i in range(1,29):
+        key = f"V{i}"
+        st.number_input(key, value=st.session_state.get(key, 0.0),
+                        format="%.6f", step=0.1, key=key)
+    st.number_input("Amount", value=st.session_state.get("Amount", 0.0),
+                    format="%.2f", key="Amount")
+
+    submit_single = st.form_submit_button("Predict")
+
+# ---- handle predict action ----
+if submit_single:
+    data = {f"V{i}": st.session_state.get(f"V{i}", 0.0) for i in range(1,29)}
+    data["Amount"] = st.session_state.get("Amount", 0.0)
+    df_single = pd.DataFrame([data])
+    Xs, df_clean = preprocess_input(df_single, scaler)
+    prob = model.predict_proba(Xs)[:,1][0]
+    pred = model.predict(Xs)[0]
+    label = pretty_label(prob, prob_thresh)
+
+    if prob >= prob_thresh:
+        st.markdown(f"### 🚨 Prediction: **{label}**  — probability **{prob:.4f}**", unsafe_allow_html=True)
+    else:
+        st.markdown(f"### ✅ Prediction: **{label}**  — probability **{prob:.4f}**", unsafe_allow_html=True)
+
 
 
     if submit_single:
