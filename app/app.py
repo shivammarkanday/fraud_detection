@@ -27,13 +27,10 @@ def load_model_and_scaler():
     return model, scaler
 
 def preprocess_input(df_in, scaler):
-    # assume df_in columns are V1..V28, Amount (no Time)
     cols_expected = [f"V{i}" for i in range(1,29)] + ["Amount"]
     df = df_in.copy()
-    # if Time present drop it
     if "Time" in df.columns:
         df = df.drop(columns=["Time"])
-    # keep only expected columns (in order), fill missing with 0
     df = df.reindex(columns=cols_expected, fill_value=0)
     X_scaled = scaler.transform(df.values)
     return X_scaled, df
@@ -52,7 +49,11 @@ def pretty_label(prob, thresh=0.5):
 
 # ---------- Load model ----------
 with st.spinner("Loading model..."):
-    model, scaler = load_model_and_scaler()
+    try:
+        model, scaler = load_model_and_scaler()
+    except Exception as e:
+        st.error("Failed to load model or scaler. Make sure models are in /models folder.")
+        st.stop()
 
 # ---------- Layout ----------
 st.markdown(
@@ -69,7 +70,9 @@ with col1:
     st.markdown('<div class="big-title">🚨 Credit Card Fraud Detection</div>', unsafe_allow_html=True)
     st.write("Interactive demo — upload transactions or test single records. Model: Random Forest.")
 with col2:
-    st.image("img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png", width=60)
+    # use repo-relative image path; remove or replace if not present
+    if os.path.exists("app/img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png"):
+        st.image("app/img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png", width=60)
 
 st.markdown("---")
 
@@ -87,80 +90,83 @@ left, right = st.columns([2,1])
 with left:
     st.subheader("1) Upload transactions (CSV) or test with sample data")
     uploaded = st.file_uploader("Upload CSV file (must include V1..V28 and Amount, optional Time, optional Class)", type=["csv"])
-    sample_btn = st.button("Load random sample from data/creditcard.csv")
+    sample_btn = st.button("Load random sample from sample_creditcard.csv")
+    df_user = None
+
     if uploaded:
         try:
             df_user = pd.read_csv(uploaded)
+            st.success("Uploaded file loaded.")
         except Exception as e:
             st.error("Failed to read CSV: " + str(e))
             df_user = None
     elif sample_btn:
         try:
             df_user = pd.read_csv("data/sample_creditcard.csv")
-            df_user = df_user.sample(200, random_state=42).reset_index(drop=True)
-            st.success("Loaded random sample (200 rows) from data/creditcard.csv")
+            # sample for UI responsiveness if file larger; sample() safe if small
+            if len(df_user) > 200:
+                df_user = df_user.sample(200, random_state=42).reset_index(drop=True)
+            st.success("Loaded sample dataset (from data/sample_creditcard.csv).")
         except Exception as e:
-            st.error("Could not load sample dataset. Make sure data/creditcard.csv exists in repo root.")
+            st.error("Could not load sample dataset. Make sure data/sample_creditcard.csv exists in repo root.")
             df_user = None
-    else:
-        df_user = None
 
     if df_user is not None:
-        st.write("Preview uploaded data:")
-        st.dataframe(df_user.head())
+        st.write("Preview loaded data:")
+        st.dataframe(df_user.head(10))
 
+        # Robust batch prediction block
         if st.button("Run batch prediction"):
             out = predict_batch(df_user, model, scaler)
-            st.success("Predictions ready")
-            st.dataframe(out.head())
+            st.success("✅ Predictions ready")
+            st.dataframe(out.head(10))
             csv = out.to_csv(index=False)
             st.download_button("Download predictions CSV", csv, file_name="predictions.csv", mime="text/csv")
 
-            # If ground truth present, show evaluation
             if "Class" in df_user.columns:
-                y_true = df_user["Class"].values
-                y_pred = out["predicted"].values
-                cm = confusion_matrix(y_true, y_pred)
-                p = precision_score(y_true, y_pred, zero_division=0)
-                r = recall_score(y_true, y_pred, zero_division=0)
-                f1 = f1_score(y_true, y_pred, zero_division=0)
-                probs = out["fraud_prob"].values
-                fpr, tpr, _ = roc_curve(y_true, probs)
-                roc_auc = auc(fpr, tpr)
+                try:
+                    y_true = df_user["Class"].values
+                    y_pred = out["predicted"].values
+                    cm = confusion_matrix(y_true, y_pred)
+                    p = precision_score(y_true, y_pred, zero_division=0)
+                    r = recall_score(y_true, y_pred, zero_division=0)
+                    f1 = f1_score(y_true, y_pred, zero_division=0)
+                    probs = out["fraud_prob"].values
+                    fpr, tpr, _ = roc_curve(y_true, probs)
+                    roc_auc = auc(fpr, tpr)
 
-                st.subheader("Batch evaluation (using uploaded Class column)")
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Precision", f"{p:.4f}")
-                c2.metric("Recall", f"{r:.4f}")
-                c3.metric("F1", f"{f1:.4f}")
+                    st.subheader("Batch evaluation (using uploaded Class column)")
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Precision", f"{p:.4f}")
+                    c2.metric("Recall", f"{r:.4f}")
+                    c3.metric("F1", f"{f1:.4f}")
 
-                # Confusion matrix heatmap (plotly)
-                fig_cm = go.Figure(data=go.Heatmap(
-                    z=cm,
-                    x=["Pred 0","Pred 1"],
-                    y=["True 0","True 1"],
-                    colorscale="Blues",
-                    hoverongaps=False,
-                ))
-                fig_cm.update_layout(title="Confusion Matrix", xaxis_title="", yaxis_title="")
-                st.plotly_chart(fig_cm, use_container_width=True)
+                    fig_cm = go.Figure(data=go.Heatmap(
+                        z=cm,
+                        x=["Pred 0","Pred 1"],
+                        y=["True 0","True 1"],
+                        colorscale="Blues",
+                        hoverongaps=False,
+                    ))
+                    fig_cm.update_layout(title="Confusion Matrix", xaxis_title="", yaxis_title="")
+                    st.plotly_chart(fig_cm, use_container_width=True)
 
-                # ROC curve
-                fig_roc = go.Figure()
-                fig_roc.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines", name=f"AUC={roc_auc:.4f}"))
-                fig_roc.add_trace(go.Scatter(x=[0,1], y=[0,1], mode="lines", line=dict(dash="dash"), name="Random"))
-                fig_roc.update_layout(title="ROC Curve", xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
-                st.plotly_chart(fig_roc, use_container_width=True)
+                    fig_roc = go.Figure()
+                    fig_roc.add_trace(go.Scatter(x=fpr, y=tpr, mode="lines", name=f"AUC={roc_auc:.4f}"))
+                    fig_roc.add_trace(go.Scatter(x=[0,1], y=[0,1], mode="lines", line=dict(dash="dash"), name="Random"))
+                    fig_roc.update_layout(title="ROC Curve", xaxis_title="False Positive Rate", yaxis_title="True Positive Rate")
+                    st.plotly_chart(fig_roc, use_container_width=True)
+                except Exception as e:
+                    st.warning("Evaluation failed: " + str(e))
+            else:
+                st.info("Uploaded dataset has no 'Class' column — skipping evaluation graphs.")
 
 with right:
     st.subheader("2) Predict single transaction")
-    st.info("Fill values or press ‘Load random sample’ to auto-fill fields.")
+    st.info("Fill values or press ‘Load random single sample’ to auto-fill fields.")
 
-    # Build dynamic form fields for V1..V28 + Amount
     with st.form("single_form"):
-        cols = st.columns([1,1])
-        sample_single = st.form_submit_button("Load random single sample from dataset")
-        # create placeholders for inputs
+        sample_single = st.form_submit_button("Load random single sample from sample_creditcard.csv")
         inputs = {}
         for i in range(1,29):
             key = f"V{i}"
@@ -168,11 +174,9 @@ with right:
         amount = st.number_input("Amount", value=0.0, format="%.2f", key="Amount")
         submit_single = st.form_submit_button("Predict")
 
-    # allow sample auto-fill (non-blocking)
     if sample_single:
         try:
             df_all = pd.read_csv("data/sample_creditcard.csv")
-
             row = df_all.sample(1, random_state=42).iloc[0]
             for i in range(1,29):
                 st.session_state[f"V{i}"] = float(row[f"V{i}"])
@@ -182,7 +186,6 @@ with right:
             st.warning("Could not load sample dataset.")
 
     if submit_single:
-        # build DataFrame from inputs
         data = {f"V{i}": st.session_state.get(f"V{i}", 0.0) for i in range(1,29)}
         data["Amount"] = st.session_state.get("Amount", 0.0)
         df_single = pd.DataFrame([data])
@@ -191,13 +194,11 @@ with right:
         pred = model.predict(Xs)[0]
         label = pretty_label(prob, prob_thresh)
 
-        # Verdict display
         if prob >= prob_thresh:
             st.markdown(f"### 🚨 Prediction: **{label}**  — probability **{prob:.4f}**", unsafe_allow_html=True)
         else:
             st.markdown(f"### ✅ Prediction: **{label}**  — probability **{prob:.4f}**", unsafe_allow_html=True)
 
-        # SHAP explanation (if user enabled)
         if show_shap:
             try:
                 import shap
