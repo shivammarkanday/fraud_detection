@@ -182,8 +182,9 @@ with right:
                 st.session_state[f"V{i}"] = float(row[f"V{i}"])
             st.session_state["Amount"] = float(row["Amount"])
             st.success("Loaded random sample into the form. Re-run Predict.")
-        except Exception:
-            st.warning("Could not load sample dataset.")
+        except Exception as e:
+            st.error(f"Could not load sample dataset: {e}")
+
 
     if submit_single:
         data = {f"V{i}": st.session_state.get(f"V{i}", 0.0) for i in range(1,29)}
