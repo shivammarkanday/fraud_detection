@@ -96,7 +96,7 @@ with left:
             df_user = None
     elif sample_btn:
         try:
-            df_user = pd.read_csv("data/creditcard.csv")
+            df_user = pd.read_csv("data/sample_creditcard.csv")
             df_user = df_user.sample(200, random_state=42).reset_index(drop=True)
             st.success("Loaded random sample (200 rows) from data/creditcard.csv")
         except Exception as e:
@@ -171,7 +171,8 @@ with right:
     # allow sample auto-fill (non-blocking)
     if sample_single:
         try:
-            df_all = pd.read_csv("data/creditcard.csv")
+            df_all = pd.read_csv("data/sample_creditcard.csv")
+
             row = df_all.sample(1, random_state=42).iloc[0]
             for i in range(1,29):
                 st.session_state[f"V{i}"] = float(row[f"V{i}"])
