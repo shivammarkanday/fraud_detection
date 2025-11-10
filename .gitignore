@@ -1,4 +1,3 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
 # Virtual environment
 venv/
 .env/
@@ -8,7 +7,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.pkl
 
 # System files
 .DS_Store
@@ -18,10 +16,13 @@ Thumbs.db
 .ipynb_checkpoints/
 
 # Model and data backups
-
 *.sav
 *.h5
-*.pkl
+# keep joblib files so Streamlit Cloud can load models
+# *.joblib
+# comment above line intentionally
+# remove pkl only if you plan to upload any model in pkl format
+# *.pkl
 
 # Large or local data files (optional)
 data/creditcard.csv
@@ -29,7 +30,6 @@ data/creditcard.csv
 # Streamlit logs
 .streamlit/
 
-# VS Code / IDE
+# VS Code / IDE settings
 .vscode/
 .idea/
-
