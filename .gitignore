@@ -1,0 +1,35 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+# Virtual environment
+venv/
+.env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model and data backups
+*.joblib
+*.sav
+*.h5
+*.pkl
+
+# Large or local data files (optional)
+data/creditcard.csv
+
+# Streamlit logs
+.streamlit/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
