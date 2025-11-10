@@ -69,7 +69,7 @@ with col1:
     st.markdown('<div class="big-title">🚨 Credit Card Fraud Detection</div>', unsafe_allow_html=True)
     st.write("Interactive demo — upload transactions or test single records. Model: Random Forest.")
 with col2:
-    st.image("/Users/shivammarkanday/Library/CloudStorage/OneDrive-AdaniUniversity/SEMESTERS/SEM 5 (2025)/Machine Learning (ML)/Project/fraud_detection/img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png", width=60)
+    st.image("img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png", width=60)
 
 st.markdown("---")
 
