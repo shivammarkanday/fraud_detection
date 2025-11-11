@@ -293,4 +293,4 @@ try:
 except Exception as e:
     st.write("Feature importances not available: " + str(e))
 
-st.markdown("Made with ❤️  •  Deploy with Streamlit Cloud / Render")
+st.markdown("Made with ❤️ by Shivam Markanday (He deserves 5 marks)")
