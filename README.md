@@ -4,6 +4,8 @@ A fully interactive **Streamlit web application** that detects fraudulent credit
 
 This project lets you upload transaction data, visualize predictions, evaluate model metrics, and even test single transactions — all inside one smooth, scrollable interface.
 
+[Click here to visit website](https://frauddetectionmlproject.streamlit.app/)
+
 ---
 
 ## Overview
@@ -135,6 +137,15 @@ creditcard-fraud-detection-app/
 | **Model** | Random Forest Classifier |
 | **Visualization** | Plotly, SHAP |
 | **Deployment** | Streamlit Cloud / Render |
+
+## Acknowledgements
+
+- **Kaggle Credit Card Fraud Dataset**  
+- **Streamlit** for fast web app development  
+- **Scikit-learn** for robust ML tools  
+- **Plotly** for beautiful data visualization  
+- **Mr Scrooge** for his gracious presence
+
 
 ## Author
 
