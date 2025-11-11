@@ -74,7 +74,7 @@ with col2:
     # optional image if present
     # img_path = "/Users/shivammarkanday/Library/CloudStorage/OneDrive-AdaniUniversity/SEMESTERS/SEM 5 (2025)/Machine Learning (ML)/Project/fraud_detection/img/scrooge_mcduck_s_face_by_adrianapendleton_detahh0.png"
     if os.path.exists(img_path):
-        st.image(img_path, width=60)
+        st.image(img_path, width=120)
 
 st.markdown("---")
 
