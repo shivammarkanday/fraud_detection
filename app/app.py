@@ -96,7 +96,7 @@ if "Amount" not in st.session_state:
     st.session_state["Amount"] = 0.0
 
 # ---------- Main: Upload / Sample / Manual (STACKED LAYOUT) ----------
-st.subheader("1) Upload transactions (CSV) or test with sample data")
+st.subheader("Upload transactions (CSV) or test with sample data")
 
 uploaded = st.file_uploader(
     "Upload CSV (must include V1..V28 and Amount; optional Time, Class)",
@@ -207,7 +207,7 @@ else:
 st.markdown("---")
 
 # ---------- Predict single transaction (STACKED, below batch section) ----------
-st.subheader("2) Predict single transaction")
+st.subheader("Predict single transaction")
 st.info("Fill values or press ‘Load random single sample’ to auto-fill fields.")
 
 # ---- Load single sample button (OUTSIDE form) ----
