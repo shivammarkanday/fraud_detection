@@ -80,7 +80,7 @@ st.markdown("---")
 
 # ---------- Sidebar controls ----------
 st.sidebar.header("App Controls")
-show_shap = st.sidebar.checkbox("Enable SHAP explanations (if available)", value=False)
+# show_shap = st.sidebar.checkbox("Enable SHAP explanations (if available)", value=False)
 prob_thresh = st.sidebar.slider("Fraud probability threshold", 0.01, 0.99, 0.5, 0.01)
 st.sidebar.markdown("**Model info**")
 st.sidebar.write("Model: Random Forest")
