@@ -80,7 +80,7 @@ st.markdown("---")
 
 # ---------- Sidebar controls ----------
 st.sidebar.header("App Controls")
-# show_shap = st.sidebar.checkbox("Enable SHAP explanations (if available)", value=False)
+show_shap = st.sidebar.checkbox("Enable SHAP explanations (if available)", value=False)
 prob_thresh = st.sidebar.slider("Fraud probability threshold", 0.01, 0.99, 0.5, 0.01)
 st.sidebar.markdown("**Model info**")
 st.sidebar.write("Model: Random Forest")
@@ -211,7 +211,7 @@ st.subheader("Predict single transaction")
 st.info("Fill values or press ‘Load random single sample’ to auto-fill fields.")
 
 # ---- Load single sample button (OUTSIDE form) ----
-if st.button("Load random single sample", key="load_single"):
+if st.button("Load random single sample from data/sample_creditcard.csv", key="load_single"):
     try:
         df_all = pd.read_csv("data/sample_creditcard.csv")
         row = df_all.sample(1).iloc[0]
@@ -269,16 +269,16 @@ if submit_single:
     else:
         st.markdown(f"### ✅ Prediction: **{label}**  — probability **{prob:.4f}**", unsafe_allow_html=True)
 
-    # if show_shap:
-    #     try:
-    #         import shap
-    #         explainer = shap.TreeExplainer(model)
-    #         shap_vals = explainer.shap_values(Xs)
-    #         st.subheader("SHAP explanation (approx.)")
-    #         # fallback plotting; SHAP may require matplotlib backend
-    #         st.pyplot(shap.plots.force(explainer.expected_value[1], shap_vals[1][0], feature_names=df_clean.columns))
-    #     except Exception as e:
-    #         st.warning("SHAP not available or failed: " + str(e))
+    if show_shap:
+        try:
+            import shap
+            explainer = shap.TreeExplainer(model)
+            shap_vals = explainer.shap_values(Xs)
+            st.subheader("SHAP explanation (approx.)")
+            # fallback plotting; SHAP may require matplotlib backend
+            st.pyplot(shap.plots.force(explainer.expected_value[1], shap_vals[1][0], feature_names=df_clean.columns))
+        except Exception as e:
+            st.warning("SHAP not available or failed: " + str(e))
 
 # ---------- Footer: Feature importances ----------
 st.markdown("---")
